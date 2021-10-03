@@ -26,7 +26,7 @@ export default class Model {
         localStorage.setItem('toDos', JSON.stringify(this.ToDos));
     }
     getToDos() {
-        return this.ToDos
+        return this.ToDos.map((todo) => ({...todo}));
     }
     findToDo(id) {
         return this.ToDos.findIndex((todo) => todo.id === id);

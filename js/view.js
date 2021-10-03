@@ -1,5 +1,6 @@
 import AddToDo from './components/add-todo.js'
 import Modal from './components/modal.js'
+import Filters from './components/filters.js'
 
 export default class View {
     constructor() {
@@ -9,6 +10,8 @@ export default class View {
         this.Modal = new Modal();
         this.addToDoForm.onclick((title, description) => this.addToDo(title, description));
         this.Modal.onClick((id, values) => this.editToDo(id, values));
+        this.Filters = new Filters();
+        this.Filters.onClick((filters) => this.filter(filters));
     }
 
     setModel(model) {
@@ -17,6 +20,31 @@ export default class View {
     render() {
         const toDos = this.model.getToDos();
         toDos.forEach((todo) => this.createRow(todo));
+    }
+
+    filter(filters) {
+        const {type, words} = filters;
+        const [, ...rows] = this.table.getElementsByTagName('tr');
+        for (const row of rows) {
+            const [title, description, completed] = row.children;
+            let shouldHide = false;
+
+            if (words) {
+                shouldHide = !title.innerText.includes(words) 
+                && 
+                !description.innerText.includes(words);
+            }
+            const shouldBeCompleted = type === 'completed';
+            const isCompleted = completed.children[0].checked;
+            if (type !== 'all' && shouldBeCompleted !== isCompleted) {
+                shouldHide = true;
+            }
+            if (shouldHide) {
+                row.classList.add('d-none');
+            } else {
+            row.classList.remove('d-none');
+        }
+        }
     }
     addToDo(title, description) {
     const todo = this.model.addToDo(title, description);
@@ -61,7 +89,12 @@ removeToDo(id) {
         editBtn.innerHTML = '<i class="fa fa-pencil"></i>'
         editBtn.setAttribute('data-toggle', 'modal');
         editBtn.setAttribute('data-target', '#modal');
-        editBtn.onclick = () => this.Modal.setValues(todo);
+        editBtn.onclick = () => this.Modal.setValues({
+            id: todo.id,
+            title: row.children[0].innerText,
+            description: row.children[1].innerText,
+            completed: row.children[2].children[0].checked,
+        });
         row.children[3].appendChild(editBtn);
         
         const removeBtn = document.createElement("button");
